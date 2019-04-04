@@ -1,3 +1,4 @@
+{-# LANGUAGE NegativeLiterals #-}
 module DiagonalLatticePaths
     ( allDLPs
     , drawAsLine
@@ -36,22 +37,24 @@ toOffsets :: DLP -> [V2 Double]
 toOffsets (DLP steps) = toOffset <$> steps
 
 toOffset :: Step -> V2 Double
-toOffset Down = V2 1 (-1)
-toOffset Up   = V2 1 1
+toOffset Down = unitX
+toOffset Up   = unitY
 
 drawAsLine :: DLP -> Diagram B
-drawAsLine dlp = (toOffsets dlp)
+drawAsLine dlp =  dlp
+    # toOffsets
     # fromOffsets
-    # lineWidth thick
     # lineColor red
+    # alignBR
+
 
 drawWithinGrid :: DLP -> Diagram B
-drawWithinGrid dlp = drawAsLine dlp `atop` rotatedGrid
+drawWithinGrid dlp = (drawAsLine dlp `atop` rotatedGrid) # rotate (-45 @@ deg)
   where
-    rotatedGrid = grid # rotateBy (1/8)
-                       # scale (sqrt 2)
-                       # translateX 1
-                       # lineColor gray
+    rotatedGrid = grid
+        # lineColor gray
+        # alignBR
+
     grid = hcat $ replicate (getN dlp) line
-    line = vcat $ replicate (getN dlp) (square 1)
+    line = vcat $ replicate (getN dlp) unitSquare
     getN (DLP steps) = length steps `div` 2

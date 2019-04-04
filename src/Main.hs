@@ -1,27 +1,82 @@
 {-# LANGUAGE FlexibleContexts          #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TypeApplications          #-}
 {-# LANGUAGE TypeFamilies              #-}
 module Main where
 
-import           Diagrams.Backend.SVG.CmdLine
-import           Diagrams.Prelude
-import DiagonalLatticePaths -- (allDLPs, drawAsLine)
+import Control.Monad (guard)
+import DiagonalLatticePaths
+import Diagrams.Backend.SVG.CmdLine
+import Diagrams.Prelude
 
 main :: IO ()
-main = mainWith ex4
-
-ex1 :: Diagram B
-ex1 = circle 1
-
-ex2 :: Diagram B
-ex2 = vcat (replicate 3 circles)
-  where
-    circles = hcat (map circle [1..6])
-
-ex3 :: Diagram B
-ex3 = ell ||| vrule 2 ||| ell
- where
-   ell = circle 1 # scaleX 0.5 # rotateBy (1/6)
+main = mainWith ex8
 
 ex4 :: Diagram B
 ex4 = vsep 1 $ drawWithinGrid <$> allDLPs 3
+
+ex0 :: Diagram B
+ex0 = cubicSpline True $
+    map p2
+    [(98,100),(57,57),(59,45),(43,55),(79,64),(37,3),(5,13),(88,4),(2,51),(69,9),(3,68),(46,19),(82,72),(77,56),(46,78),(94,27),(31,26),(39,49),(25,63),(12,70),(70,75),(99,60),(69,30),(72,97),(39,4),(1,4),(76,71),(25,28),(35,75),(27,12),(50,90),(2,90),(23,29),(96,76),(36,49),(3,100),(6,14),(14,53),(42,54),(79,28),(30,97),(78,26),(44,20),(51,82),(98,95),(11,5),(31,85),(18,23),(25,6),(11,35),(10,19),(45,78),(92,89),(22,1),(52,13),(50,7),(26,20),(23,29),(50,87),(38,44),(24,80),(13,30),(58,61)]
+
+ex1 :: Diagram B
+ex1 =
+    (mconcat $ map (cubicSpline True) vs) <> ((concat vs) `atPoints` (repeat $ circle 0.2 # fc blue))
+  where
+    vs = pathVertices . star (StarSkip 21)  $ regPoly 47 5
+
+ex2 :: Diagram B
+ex2 = pad 1.1 $ vsep 0.2 $ fmap (\x -> showOrigin $ text (show x) <> unitCircle) [1..100]
+
+circledText :: Int -> Diagram B
+circledText n = (text (show n) <> circle 0.6) # named n
+
+ex3 :: Diagram B
+ex3 = circledText n1 ||| strutX 2 ||| circledText n2
+    & connectOutside n1 n2
+    & lw veryThick
+  where
+    n1 = 1 :: Int
+    n2 = 2 :: Int
+
+ex5 :: Diagram B
+ex5 = unitSquare # showEnvelope
+
+ex6 :: Diagram B
+ex6 = (arc (direction unitX) a
+  ||| arc (direction unit_X) a
+  ||| arc (direction unitX) a) # centerX
+  <> arc' 3 (direction unit_X) a
+  where a = 180 @@ deg
+
+ex7 :: Diagram B
+ex7 = [alignL, alignR, alignT, alignB, alignTL, alignTR, alignBL, alignBR, centerX, centerY, centerXY ]
+  # fmap (\a -> unitSquare # a # showOrigin # showEnvelope)
+  # vcat
+
+ex8 :: Diagram B
+ex8 = connectAllVertices $ hsep 0.5
+    [ "left"  .>> (visPoints (trailVertices $ poly 5) <> c # named (6::Int))
+    , "right" .>> (visPoints (trailVertices $ poly 6))
+    ]
+  where
+    visPoints :: [P2 Double] -> Diagram B
+    visPoints pts = atPoints pts (zipWith named vertexNames (repeat c))
+
+    connectAllVertices :: Diagram B -> Diagram B
+    connectAllVertices = applyAll $ do {- list monad -}
+        subName <- ["left", "right"]
+        a <- vertexNames
+        b <- vertexNames
+        guard (a < b)
+        return $ connectOutside' (with & arrowHead .~ noHead) (subName .> a) (subName .> b)
+
+    poly :: Int -> Located (Trail V2 Double)
+    poly vertexCount = polygon (with & polyType .~ PolyRegular vertexCount 1)
+
+    vertexNames :: [Int]
+    vertexNames = [1..6]
+
+    c :: Diagram B
+    c = circle 0.05
