@@ -1,16 +1,24 @@
-{-# LANGUAGE FlexibleContexts          #-}
-{-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE TypeApplications          #-}
-{-# LANGUAGE TypeFamilies              #-}
 module Main where
 
-import Diagrams.Backend.Rasterific.CmdLine (B, animMain)
+import Diagrams.Backend.Rasterific (GifDelay)
+import Diagrams.Backend.Rasterific.CmdLine (B, uniformGifMain)
 import Diagrams.Prelude
 
 main :: IO ()
-main = animMain animation
+main =
+    uniformGifMain (2 :: GifDelay) $ rotatingSquares <$> [1..90]
+  where
+    rotatingSquares :: Double -> Diagram B
+    rotatingSquares degrees = mconcat
+      [ square 1         # rot 8
+      , square s         # rot 4
+      , square (s*s)     # rot 2
+      , square (s*s*s)   # rot 1
+      , square (s*s*s*s) # fc white
+      ] # lw thick
+        where
+          rot :: Double -> Diagram B -> Diagram B
+          rot x = rotate (x * degrees @@ deg)
 
-animation :: Animation B V2 Double
-animation =
-     (rotateBy <$> ui <*> square 1 # lw veryThick)
-     <> pure (square 2 # fc white)
+          s :: Double
+          s = sqrt 2

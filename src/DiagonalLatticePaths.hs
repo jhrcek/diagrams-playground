@@ -7,10 +7,9 @@ module DiagonalLatticePaths
     , Step(..)
     ) where
 
-import           Diagrams.Backend.SVG.CmdLine
-import           Diagrams.Prelude
-import           Diagrams.TwoD
-import           Math.Combinat.Numbers.Sequences (binomial)
+import Diagrams.Backend.SVG.CmdLine
+import Diagrams.Prelude
+import Math.Combinat.Numbers.Sequences (binomial)
 
 data Step = Down | Up deriving (Eq, Show, Ord, Enum, Bounded)
 

@@ -9,6 +9,7 @@ diagrams-playground:exe:play \
 
 ## Animations
 
+- using animMain
 ```bash
 # generate sequence of frames
 stack build \
@@ -19,5 +20,7 @@ diagrams-playground:exe:anim \
 ffmpeg -i %02d.png output.gif
 ```
 
-## TODO
-- read [active](https://www.stackage.org/haddock/lts-13.15/active-0.2.0.13/Data-Active.html) haddock
+- using gifMain
+```bash
+stack build diagrams-playground:exe:anim --file-watch --exec 'anim -o output.gif -w 400'
+```
