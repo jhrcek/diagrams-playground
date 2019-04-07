@@ -1,13 +1,11 @@
 {-# LANGUAGE NegativeLiterals #-}
 module DiagonalLatticePaths
     ( allDLPs
-    , drawAsLine
-    , drawWithinGrid
-    , DLP
+    , toOffsets
+    , DLP(..)
     , Step(..)
     ) where
 
-import Diagrams.Backend.SVG.CmdLine
 import Diagrams.Prelude
 import Math.Combinat.Numbers.Sequences (binomial)
 
@@ -38,22 +36,3 @@ toOffsets (DLP steps) = toOffset <$> steps
 toOffset :: Step -> V2 Double
 toOffset Down = unitX
 toOffset Up   = unitY
-
-drawAsLine :: DLP -> Diagram B
-drawAsLine dlp =  dlp
-    # toOffsets
-    # fromOffsets
-    # lineColor red
-    # alignBR
-
-
-drawWithinGrid :: DLP -> Diagram B
-drawWithinGrid dlp = (drawAsLine dlp `atop` rotatedGrid) # rotate (-45 @@ deg)
-  where
-    rotatedGrid = grid
-        # lineColor gray
-        # alignBR
-
-    grid = hcat $ replicate (getN dlp) line
-    line = vcat $ replicate (getN dlp) unitSquare
-    getN (DLP steps) = length steps `div` 2
